@@ -20,7 +20,15 @@
         {% include 'header.html' %}
       </div> <!-- end header -->
       <div class="main">
-        {% block content %}{% endblock %}
+        <div class="row">
+          <div class="col-md-9">
+            {% block content %}{% endblock %}
+          </div>
+          <div class="col-md-3">
+            {% include 'sidebar.html' %}
+          </div>
+        </div>
+        <div id="push"></div>
       </div> <!-- end main -->
       <div class="footer">
         {% include 'footer.html' %}
