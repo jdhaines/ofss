@@ -1,0 +1,4 @@
+//navbar
+#navbar-gradient {
+	@include gradient-vertical($brand-primary, darken($brand-primary, 10%), 0%, 100%);
+}
