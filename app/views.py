@@ -24,12 +24,19 @@ def about():
                            title="About - Ohio Family Survival Store",)
 
 
+@app.route("/success", methods=['GET'])
+def success():
+    """Display the about page."""
+    return render_template("success.html",
+                           title="Success - Ohio Family Survival Store",)
+
+
 @app.route("/contact", methods=['GET', 'POST'])
 def contact():
     """Display the contact page."""
     form = ContactForm()
     if form.validate_on_submit():
-        return redirect('/sucess')
+        return redirect("/success")
     return render_template("contact.html",
                            title="Contact - Ohio Family Survival Store",
                            form=form)
