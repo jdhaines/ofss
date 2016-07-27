@@ -1,8 +1,8 @@
 """Module which describes the form fields in the bushing app."""
 
 from flask_wtf import Form, RecaptchaField
-from wtforms import StringField, TextAreaField  # , StringField, SelectField
-from wtforms import validators, SubmitField  # ValidationError,
+from wtforms import StringField, TextAreaField, validators, SubmitField, \
+    PasswordField
 # from wtforms.validators import DataRequired
 
 
@@ -19,4 +19,13 @@ class ContactForm(Form):
     recaptcha = RecaptchaField()
     submit = SubmitField("Send")
 
+
+class LoginForm(Form):
+    """Login form."""
+
+    username = StringField("Username", [validators.Required(
+        "Please enter your username.")])
+    password = PasswordField("Password", [validators.Required(
+        "Please enter your password.")])
+    submit = SubmitField("Login")
 # end

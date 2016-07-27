@@ -4,9 +4,10 @@
 
 # from io import StringIO
 
-from app import app  # , db, models
-from flask import render_template, redirect  # request Markup abort make_response
-from .forms import ContactForm  # BushingInfo, BushingSN, SingleExtract
+from app import app, blogging_engine, login_manager  # db, models,
+from flask import render_template, redirect
+from .forms import ContactForm, LoginForm
+from flask_login import UserMixin, login_user, logout_user
 
 
 @app.route("/")
@@ -41,25 +42,51 @@ def contact():
                            title="Contact - Ohio Family Survival Store",
                            form=form)
 
-    # # user is sending data to the page
-    # if request.method == 'POST':
 
-    #     # form input isn't correct
-    #     if form.validate() is False:
+@app.route("/login", methods =["GET", "POST"])
+def login():
+    """Login Page."""
+    form = LoginForm()
+    if form.validate_on_submit():
+        # Login and validate the user.
+        # user should be an instance of your `User` class
+        login_user(user)
 
-    #         # re-show the contact page
-    #         return render_template("contact.html",
-    #                        title="Contact - Ohio Family Survival Store",
-    #                        form=form)
-    #     # form input is correct, do the database thing
-    #     else:
-    #         return render_template("success.html",
-    #                         title="Sucess - Ohio Family Survival Store")
+        flask.flash('Logged in successfully.')
 
-    # # We're simply displaying the page, not getting user input
-    # elif request.method == 'GET':
-    #     return render_template("contact.html",
-    #                        title="Contact - Ohio Family Survival Store",
-    #                        form=form)
+        next = flask.request.args.get('next')
+        # next_is_valid should check if the user has valid
+        # permission to access the `next` url
+        if not next_is_valid(next):
+            return flask.abort(400)
 
-# end
+        return flask.redirect(next or flask.url_for('index'))
+    return flask.render_template('login.html', form=form)
+
+
+@app.route("/logout")
+def logout():
+    """Logout Page."""
+    logout_user()
+    return redirect("/")
+
+
+# Classes
+class User(UserMixin):
+    """Docstring."""
+
+    def __init__(self, user_id):
+        """Docstring."""
+        self.id = user_id
+
+    def get_name(self):
+        """Docstring."""
+        return "Mary"  # typically the user's name
+
+
+# Functions
+@login_manager.user_loader
+@blogging_engine.user_loader
+def load_user(user_id):
+    """Docstring."""
+    return User(user_id)
