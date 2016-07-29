@@ -5,11 +5,48 @@
 # from io import StringIO
 
 from app import app, blogging_engine, login_manager  # db, models,
-from flask import render_template, redirect
+from flask import render_template, redirect, request, flash, url_for
 from .forms import ContactForm, LoginForm
-from flask_login import UserMixin, login_user, logout_user
+from flask_login import UserMixin, login_user, logout_user, login_required
+from flask_login import confirm_login
 
 
+# Classes
+class User(UserMixin):
+    """Docstring."""
+
+    def __init__(self, name, id, active=True):
+        """Docstring."""
+        self.id = id
+        self.name = name
+        self.active = active
+
+    def is_active(self):
+        """Docstring."""
+        return self.active
+
+    def get_name(self):
+        """Docstring."""
+        return self.name  # typically the user's name
+
+# User Values
+USERS = {
+    1: User(u"Josh", 1),
+    2: User(u"Mary", 2)
+}
+
+USER_NAMES = dict((u.name, u) for u in USERS.values())
+
+
+# Functions
+@login_manager.user_loader
+@blogging_engine.user_loader
+def load_user(user_id):
+    """Docstring."""
+    return USERS.get(id)
+
+
+# Routes
 @app.route("/")
 @app.route("/index", methods=['GET'])
 def index():
@@ -43,50 +80,42 @@ def contact():
                            form=form)
 
 
-@app.route("/login", methods =["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    """Login Page."""
+    """Login User."""
     form = LoginForm()
-    if form.validate_on_submit():
-        # Login and validate the user.
-        # user should be an instance of your `User` class
-        login_user(user)
+    if request.method == "POST" and "username" in request.form:
+        username = request.form["username"]
+        if username in USER_NAMES:
+            print("username in USER_NAMES")
+            remember = request.form.get("remember", "no") == "yes"
+            if login_user(USER_NAMES[username], remember=remember):
+                flash("Logged in!")
+                return redirect(request.args.get("next") or url_for("index"))
+            else:
+                flash("Sorry, but you could not log in.")
+        else:
+            flash(u"Invalid username.")
+    return render_template("login.html", form=form)
 
-        flask.flash('Logged in successfully.')
 
-        next = flask.request.args.get('next')
-        # next_is_valid should check if the user has valid
-        # permission to access the `next` url
-        if not next_is_valid(next):
-            return flask.abort(400)
-
-        return flask.redirect(next or flask.url_for('index'))
-    return flask.render_template('login.html', form=form)
+@app.route("/reauth", methods=["GET", "POST"])
+@login_required
+def reauth():
+    """Reauthorize User."""
+    if request.method == "POST":
+        confirm_login()
+        flash(u"Reauthenticated.")
+        return redirect(request.args.get("next") or url_for("index"))
+    return render_template("reauth.html")
 
 
 @app.route("/logout")
+@login_required
 def logout():
-    """Logout Page."""
+    """Logout User."""
     logout_user()
-    return redirect("/")
+    flash("Logged out.")
+    return redirect(url_for("index"))
 
-
-# Classes
-class User(UserMixin):
-    """Docstring."""
-
-    def __init__(self, user_id):
-        """Docstring."""
-        self.id = user_id
-
-    def get_name(self):
-        """Docstring."""
-        return "Mary"  # typically the user's name
-
-
-# Functions
-@login_manager.user_loader
-@blogging_engine.user_loader
-def load_user(user_id):
-    """Docstring."""
-    return User(user_id)
+# end
