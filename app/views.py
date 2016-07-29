@@ -15,35 +15,21 @@ from flask_login import confirm_login
 class User(UserMixin):
     """Docstring."""
 
-    def __init__(self, id, name, active=True):
+    def __init__(self, user_id):
         """Docstring."""
-        self.id = id
-        self.name = name
-        self.active = active
-
-    def is_active(self):
-        """Docstring."""
-        return self.active
+        self.id = user_id
 
     def get_name(self):
         """Docstring."""
-        return self.name  # typically the user's name
-
-# User Values
-USERS = {
-    1: User(1, u"Josh"),
-    2: User(2, u"Mary")
-}
-
-USER_NAMES = dict((u.name, u) for u in USERS.values())
+        return "Admin"  # typically the user's name
 
 
 # Functions
 @login_manager.user_loader
 @blogging_engine.user_loader
-def load_user(user_id):
+def load_user(id):
     """Docstring."""
-    return USERS.get(id)
+    return User(id)
 
 
 # Routes
@@ -82,22 +68,18 @@ def contact():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Login User."""
+    """Login a User."""
     form = LoginForm()
-    if request.method == "POST" and "username" in request.form:
-        username = request.form["username"]
-        if username in USER_NAMES:
-            print("Valid Username")
-            remember = request.form.get("remember", "no") == "yes"
-            if login_user(USER_NAMES[username], remember=remember):
-                flash("Logged in!")
-                print("After flash Logged In!")
-                return redirect(request.args.get("next") or url_for("index"))
-            else:
-                flash("Sorry, but you could not log in.")
+    user = User("Admin")
+    if request.method == 'POST' and request.form.get('password'):
+        password = request.form.get('password')
+        if password == app.config['ADMIN_PASSWORD']:
+            login_user(user)
+            flash('You are now logged in.', 'success')
+            return redirect("/blog")
         else:
-            flash(u"Invalid username.")
-    return render_template("login.html", form=form)
+            flash('Incorrect password.', 'danger')
+    return render_template('login.html', form=form)
 
 
 @app.route("/reauth", methods=["GET", "POST"])
