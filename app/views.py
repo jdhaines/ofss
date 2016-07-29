@@ -15,7 +15,7 @@ from flask_login import confirm_login
 class User(UserMixin):
     """Docstring."""
 
-    def __init__(self, name, id, active=True):
+    def __init__(self, id, name, active=True):
         """Docstring."""
         self.id = id
         self.name = name
@@ -31,8 +31,8 @@ class User(UserMixin):
 
 # User Values
 USERS = {
-    1: User(u"Josh", 1),
-    2: User(u"Mary", 2)
+    1: User(1, u"Josh"),
+    2: User(2, u"Mary")
 }
 
 USER_NAMES = dict((u.name, u) for u in USERS.values())
@@ -87,10 +87,11 @@ def login():
     if request.method == "POST" and "username" in request.form:
         username = request.form["username"]
         if username in USER_NAMES:
-            print("username in USER_NAMES")
+            print("Valid Username")
             remember = request.form.get("remember", "no") == "yes"
             if login_user(USER_NAMES[username], remember=remember):
                 flash("Logged in!")
+                print("After flash Logged In!")
                 return redirect(request.args.get("next") or url_for("index"))
             else:
                 flash("Sorry, but you could not log in.")
